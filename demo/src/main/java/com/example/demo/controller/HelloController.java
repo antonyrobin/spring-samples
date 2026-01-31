@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloController {
 
-    @GetMapping("/")
+    @GetMapping("/hello")
     public String index() {
         SpringModel model = new SpringModel("Hello, World!");
         model.setName("Spring User");

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Registration Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="form-card">
+        <div class="form-header">
+            <h2>New Registration</h2>
+            <a href="/" style="float:right; font-size:14px;">Back to Dashboard</a>
+        </div>
+
+        <form id="dynamicForm" th:action="@{/submit}" method="post" enctype="multipart/form-data" novalidate>
+            <input type="hidden"
+                   th:if="${_csrf}"
+                   th:name="${_csrf?.parameterName}"
+                   th:value="${_csrf?.token}" />
+
+            <div th:each="control : ${formControls}" class="form-group-wrapper">
+                <div class="form-group">
+                    <label class="field-label" th:for="${control.name}">
+                        <span th:text="${control.label}">Label</span>
+                        <span th:if="${control.mandatory}" class="required-star">*</span>
+                    </label>
+
+                    <input th:if="${control.type == 'text' || control.type == 'email' || control.type == 'date'}"
+                           th:type="${control.type}" th:name="${control.name}" th:id="${control.name}" class="form-control"
+                           th:value="${formData != null ? formData.get(control.name) : ''}"
+                           th:data-mandatory="${control.mandatory}" />
+
+                    <div th:if="${control.type == 'image'}" class="file-upload-wrapper">
+                        <input type="file" th:name="${control.name}" th:id="${control.name}" accept="image/*" class="file-input-hidden"
+                               th:data-mandatory="${control.mandatory}" onchange="handleFileSelect(this)" />
+                        <div class="drop-zone" onclick="triggerFileClick(this)">
+                            <img class="img-preview" style="max-width:100px; max-height:100px; display:none; margin:0 auto; border-radius:50%;" />
+                            <div class="drop-icon">📷</div>
+                            <div class="drop-text">Click to upload Profile Picture</div>
+                            <div class="file-info" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <div th:if="${control.type == 'file'}" class="file-upload-wrapper">
+                        <input type="file" th:name="${control.name}" th:id="${control.name}" class="file-input-hidden"
+                               th:data-mandatory="${control.mandatory}" onchange="handleFileSelect(this)" />
+                        <div class="drop-zone" onclick="triggerFileClick(this)">
+                            <div class="drop-icon">📂</div>
+                            <div class="drop-text">Upload Resume/Docs</div>
+                            <div class="file-info" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <textarea th:if="${control.type == 'richtext'}" th:name="${control.name}" th:id="${control.name}" class="form-control rich-editor"></textarea>
+
+                    <input th:if="${control.type == 'select-multiple'}" th:name="${control.name}" class="form-control tagify-input"
+                           th:data-options="${#strings.arrayJoin(control.options, ',')}" />
+
+                    <select th:if="${control.type == 'select'}" th:name="${control.name}" class="form-control">
+                        <option th:each="opt : ${control.options}" th:value="${opt}" th:text="${opt}"></option>
+                    </select>
+
+                    <div th:if="${control.type == 'radio'}" class="radio-group-container">
+                        <div th:each="option : ${control.options}" class="custom-radio">
+                            <input type="radio" th:name="${control.name}" th:value="${option}" />
+                            <label th:text="${option}"></label>
+                        </div>
+                    </div>
+
+                </div>
+                <div th:if="${errors != null && errors.containsKey(control.name)}" class="server-error"
+                     th:text="${errors.get(control.name)}">Error</div>
+                <div class="error-message" th:id="'error-' + ${control.name}"></div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script th:src="@{/js/form-scripts.js}"></script>
+</body>
+</html>

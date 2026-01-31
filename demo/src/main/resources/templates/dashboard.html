@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="action-bar">
+        <h2>Candidates</h2>
+        <a href="/new" class="btn-new">+ New Registration</a>
+    </div>
+
+    <div th:if="${message}" style="background:#d4edda; color:#155724; padding:10px; margin-bottom:15px; border-radius:4px;">
+        <span th:text="${message}"></span>
+    </div>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th>Profile</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Experience</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="sub : ${submissions}">
+            <td>
+                <img th:if="${sub.fileData.containsKey('profilePic')}"
+                     th:src="@{'/files/' + ${sub.fileData.get('profilePic')}}"
+                     class="profile-thumb" alt="Profile">
+                <span th:unless="${sub.fileData.containsKey('profilePic')}">N/A</span>
+            </td>
+            <td th:text="${sub.textData.get('fullName')}">Name</td>
+            <td th:text="${sub.textData.get('emailAddress')}">Email</td>
+            <td th:text="${sub.textData.get('experience')}">Exp</td>
+            <td>
+                <a th:href="@{/edit/{id}(id=${sub.id})}" class="btn-action btn-edit">Edit</a>
+                <a th:href="@{'/view/' + ${sub.id}}" class="btn-action btn-view">View</a>
+                <button type="button"
+                        class="btn-action btn-del"
+                        th:data-id="${sub.id}"
+                        onclick="showDeleteConfirm(this.getAttribute('data-id'))">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        <tr th:if="${submissions.empty}">
+            <td colspan="5" style="text-align:center;">No records found.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div id="deleteModal" class="custom-modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Confirm Deletion</h3>
+        <p>Are you sure you want to delete this record?</p>
+        <div class="modal-actions">
+            <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+            <a id="confirmDeleteBtn" href="#" class="btn-del">Delete</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

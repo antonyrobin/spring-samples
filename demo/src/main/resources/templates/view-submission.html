@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>View Submission</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="form-card">
+        <div class="form-header">
+            <h2>Candidate Details</h2>
+            <a href="/" class="browse-link">Back</a>
+        </div>
+
+        <div th:if="${submission.fileData.containsKey('profilePic')}" style="text-align:center; margin-bottom:20px;">
+            <img th:src="@{'/files/' + ${submission.fileData.get('profilePic')}}"
+                 style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid #eee;">
+        </div>
+
+        <div class="submitted-data-table">
+            <div th:each="control : ${controls}">
+                <div th:if="${control.type != 'file' && control.type != 'image'}" style="margin-bottom:15px;">
+                    <strong style="display:block; color:#555;" th:text="${control.label}">Label</strong>
+
+                    <div th:if="${control.type == 'richtext'}"
+                         style="background:#f9f9f9; padding:10px; border-radius:4px;"
+                         th:utext="${submission.textData.get(control.name)}"></div>
+
+                    <div th:unless="${control.type == 'richtext'}"
+                         th:text="${submission.textData.get(control.name)}"
+                         style="font-size:16px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Attachments</h3>
+        <div th:each="entry : ${submission.fileData}">
+            <div th:if="${entry.key != 'profilePic'}" style="margin-bottom:10px;">
+                <span th:text="${entry.key}">Type</span>:
+                <a th:href="@{'/files/' + ${entry.value}}" class="browse-link" target="_blank">Download File</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -37,6 +37,8 @@ public class DynamicFormController {
     @GetMapping("/new")
     public String showNewForm(Model model) {
         model.addAttribute("formControls", formDefService.getFormControls());
+        model.addAttribute("isEdit", false);
+        model.addAttribute("submissionId", "");
         return "dynamic-form";
     }
 
@@ -56,7 +58,7 @@ public class DynamicFormController {
             model.addAttribute("errors", errors);
             // Retain values (simple implementation)
             Map<String, String> retained = new HashMap<>();
-            paramMap.forEach((k, v) -> retained.put(k, v[0]));
+            paramMap.forEach((k, v) -> retained.put(k, String.join(",", v)));
             model.addAttribute("formData", retained);
             return "dynamic-form";
         }
@@ -65,7 +67,13 @@ public class DynamicFormController {
         Map<String, String> textData = new HashMap<>();
         Map<String, String> savedFileData = new HashMap<>();
 
-        paramMap.forEach((k, v) -> textData.put(k, v[0]));
+        paramMap.forEach((k, v) -> {
+            if (v != null && v.length > 1) {
+                textData.put(k, String.join(",", v));
+            } else {
+                textData.put(k, v[0]);
+            }
+        });
 
         fileMap.forEach((key, file) -> {
             if (!file.isEmpty()) {
@@ -79,7 +87,7 @@ public class DynamicFormController {
         submissionService.save(submission);
 
         redirectAttributes.addFlashAttribute("message", "Application submitted successfully!");
-        return "redirect:/";
+        return "redirect:";
     }
 
     // 4. View Detail
@@ -102,6 +110,7 @@ public class DynamicFormController {
 
         model.addAttribute("formControls", formDefService.getFormControls());
         model.addAttribute("formData", submission.getTextData());
+        model.addAttribute("submission", submission);
         model.addAttribute("isEdit", true);
         model.addAttribute("submissionId", id);
         return "dynamic-form";

@@ -17,7 +17,10 @@ public class FormValidationService {
 
             // File Validation
             if (control.getType().equals("file") || control.getType().equals("image")) {
-                if (control.isMandatory() && (!files.containsKey(name) || files.get(name).isEmpty())) {
+                boolean hasNewFile = files.containsKey(name) && !files.get(name).isEmpty();
+                boolean isEdit = params.containsKey("isEdit") && params.get("isEdit")[0].equals("true");
+System.out.println(control.getLabel() + " - hasNewFile: " + hasNewFile + ", isEdit: " + isEdit);
+                if (control.isMandatory() && !hasNewFile && !isEdit) {
                     errors.put(name, control.getLabel() + " is required.");
                 } else if (files.containsKey(name) && !files.get(name).isEmpty()) {
                     MultipartFile file = files.get(name);
@@ -33,7 +36,8 @@ public class FormValidationService {
             }
 
             // Text/Data Validation
-            String value = (params.containsKey(name) && params.get(name).length > 0) ? params.get(name)[0] : "";
+            String[] values = params.get(name);
+            String value = (values != null && values.length > 0) ? String.join(",", values) : "";
 
             if (control.isMandatory() && (value == null || value.trim().isEmpty())) {
                 errors.put(name, control.getLabel() + " is required.");

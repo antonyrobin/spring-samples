@@ -39,8 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    window.triggerFileClick = function(dropZone) { dropZone.previousElementSibling.click(); };
-
     // 4. Client Side Validation
     const form = document.getElementById('dynamicForm');
     if(form) {
@@ -52,25 +50,73 @@ document.addEventListener("DOMContentLoaded", function () {
             // Clear errors
             document.querySelectorAll('.error-message').forEach(el => el.innerText = '');
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            document.getElementById("form-validation-message").innerText = "";
+            try {
+                // Basic Loops
+                const formGroups = form.querySelectorAll('.form-group');
+                formGroups.forEach(formGroup => {
+                    let hasValue = false;
+                    let inputValue = "";
+                    let input = null;
+                    const inputType = formGroup.getAttribute("type");
+                    switch (inputType) {
+                        case 'radio':
+                            input = formGroup.querySelector('.radio-group-container');
+                            inputValue = formGroup.querySelectorAll('input[type="radio"]:checked').length > 0 ? "hasValue" : "";
+                            hasValue = !!inputValue;
+                            break;
+                        case 'checkbox':
+                            input = formGroup.querySelector('.radio-group-container');
+                            inputValue = formGroup.querySelectorAll('input[type="checkbox"]:checked').length > 0 ? "hasValue" : "";
+                            hasValue = !!inputValue;
+                            break;
+                        case 'file':
+                        case 'image':
+                            input = formGroup.querySelector('input[type="file"]');
+                            const hasNewFile = input.files.length > 0;
+                            const hasExistingFile = input.getAttribute("data-existing") === "true";
+                            hasValue = hasNewFile || hasExistingFile;
+                            break;
+                        case 'select':
+                            input = formGroup.querySelector('select');
+                            inputValue = input.value.trim();
+                            hasValue = !!inputValue;
+                            break;
+                        default:
+                            input = formGroup.querySelector('input, textarea');
+                            if (input) {
+                                inputValue = input.value.trim();
+                                hasValue = inputValue !== "";
+                            }
+                    }
 
-            // Basic Loops
-            const inputs = form.querySelectorAll('[data-mandatory="true"]');
-            inputs.forEach(input => {
-                // Radio/Checkbox special handling
-                if(input.type === 'radio' || input.type === 'checkbox') {
-                    // (Simpler logic: relying on container class validation or server side for strictness)
-                    // For this demo, we rely on Server Side for complex radio/check valid to save JS space,
-                    // but basic Text/Email/Select validation is here:
-                    return;
+                    if (formGroup.getAttribute("data-mandatory") === "true") {
+                        if (!hasValue) {
+                            showError(input, "This field is required.");
+                            isValid = false;
+                        }
+                    }
+                    // Additional validations
+                    if (hasValue) {
+                        if (input.type === 'file') {
+                            const file = input.files[0];
+                            if (file && file.size > 10 * 1024 * 1024) { // 10MB
+                                showError(input, "File is too large! Please upload a file smaller than 10MB.");
+                                isValid = false;
+                            }
+                        }
+                    }
+                });
+                if (!isValid) {
+                    document.getElementById("form-validation-message").innerText = "Please correct the errors highlighted";
+                    e.preventDefault();
                 }
-
-                if (!input.value.trim()) {
-                    showError(input, "This field is required.");
-                    isValid = false;
-                }
-            });
-
-            if (!isValid) e.preventDefault();
+            } catch (err) {
+                console.error("Validation error:", err);
+                document.getElementById("form-validation-message").innerText = "An unexpected error occurred during validation. Please try again.";
+                isValid = false;
+                e.preventDefault();
+            }
         });
     }
 
@@ -78,17 +124,6 @@ document.addEventListener("DOMContentLoaded", function () {
         input.classList.add('is-invalid');
         const errDiv = document.getElementById('error-' + input.id);
         if(errDiv) errDiv.innerText = msg;
-    }
-
-    function showDeleteConfirm(id) {
-        const modal = document.getElementById('deleteModal');
-        const confirmLink = document.getElementById('confirmDeleteLink');
-        modal.style.display = 'flex';
-        confirmLink.href = '/delete/' + id;
-    }
-
-    function closeModal() {
-        document.getElementById('deleteModal').style.display = 'none';
     }
 
     document.querySelectorAll('.drop-zone').forEach(dropZone => {

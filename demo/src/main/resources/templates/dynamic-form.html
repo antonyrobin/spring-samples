@@ -15,57 +15,100 @@
             <a href="/" style="float:right; font-size:14px;">Back to Dashboard</a>
         </div>
 
-        <form id="dynamicForm" th:action="@{/submit}" method="post" enctype="multipart/form-data" novalidate>
+        <form id="dynamicForm" th:action="${isEdit} ? @{/update/{id}(id=${submissionId})} : @{/submit}"
+              method="post" enctype="multipart/form-data" novalidate>
             <input type="hidden"
                    th:if="${_csrf}"
                    th:name="${_csrf?.parameterName}"
                    th:value="${_csrf?.token}" />
 
             <div th:each="control : ${formControls}" class="form-group-wrapper">
-                <div class="form-group">
+                <div class="form-group" th:type="${control.type}" th:data-mandatory="${control.mandatory}">
                     <label class="field-label" th:for="${control.name}">
                         <span th:text="${control.label}">Label</span>
                         <span th:if="${control.mandatory}" class="required-star">*</span>
                     </label>
 
-                    <input th:if="${control.type == 'text' || control.type == 'email' || control.type == 'date'}"
+                    <input th:if="${control.type == 'text' || control.type == 'email' || control.type == 'date' || control.type == 'number' || control.type == 'password' || control.type == 'url' || control.type == 'tel' || control.type == 'color' || control.type == 'time' || control.type == 'datetime-local' || control.type == 'month' || control.type == 'week' || control.type == 'hidden'}"
                            th:type="${control.type}" th:name="${control.name}" th:id="${control.name}" class="form-control"
                            th:value="${formData != null ? formData.get(control.name) : ''}"
                            th:data-mandatory="${control.mandatory}" />
 
                     <div th:if="${control.type == 'image'}" class="file-upload-wrapper">
                         <input type="file" th:name="${control.name}" th:id="${control.name}" accept="image/*" class="file-input-hidden"
+                               th:data-existing="${submission != null && submission.fileData.containsKey(control.name)}"
                                th:data-mandatory="${control.mandatory}" onchange="handleFileSelect(this)" />
+
                         <div class="drop-zone" onclick="triggerFileClick(this)">
-                            <img class="img-preview" style="max-width:100px; max-height:100px; display:none; margin:0 auto; border-radius:50%;" />
-                            <div class="drop-icon">📷</div>
-                            <div class="drop-text">Click to upload Profile Picture</div>
-                            <div class="file-info" style="display:none;"></div>
+                            <img class="img-preview"
+                                 th:src="${submission != null && submission.fileData.containsKey(control.name) ? '/files/' + submission.fileData.get(control.name) : ''}"
+                                 th:style="${submission != null && submission.fileData.containsKey(control.name) ? 'max-width:100px; max-height:100px; display:block; margin:0 auto; border-radius:50%;' : 'max-width:100px; max-height:100px; display:none; margin:0 auto; border-radius:50%;'}" />
+
+                            <div class="drop-icon" th:style="${submission != null && submission.fileData.containsKey(control.name) ? 'display:none;' : ''}">📷</div>
+                            <div class="drop-text" th:text="${submission != null && submission.fileData.containsKey(control.name) ? 'Click to change Picture' : 'Click to upload Profile Picture'}"></div>
+
+                            <div class="file-info"
+                                 th:style="${submission != null && submission.fileData.containsKey(control.name) ? 'display:block;' : 'display:none;'}"
+                                 th:text="${submission != null ? submission.fileData.get(control.name) : ''}"></div>
                         </div>
                     </div>
 
                     <div th:if="${control.type == 'file'}" class="file-upload-wrapper">
                         <input type="file" th:name="${control.name}" th:id="${control.name}" class="file-input-hidden"
+                               th:data-existing="${submission != null && submission.fileData.containsKey(control.name)}"
                                th:data-mandatory="${control.mandatory}" onchange="handleFileSelect(this)" />
+
                         <div class="drop-zone" onclick="triggerFileClick(this)">
                             <div class="drop-icon">📂</div>
-                            <div class="drop-text">Upload Resume/Docs</div>
-                            <div class="file-info" style="display:none;"></div>
+                            <div class="drop-text" th:text="${submission != null && submission.fileData.containsKey(control.name) ? 'Click to replace File' : 'Upload Resume/Docs'}"></div>
+
+                            <div class="file-info"
+                                 th:style="${submission != null && submission.fileData.containsKey(control.name) ? 'display:block;' : 'display:none;'}"
+                                 th:text="${submission != null ? submission.fileData.get(control.name) : ''}"></div>
                         </div>
                     </div>
 
-                    <textarea th:if="${control.type == 'richtext'}" th:name="${control.name}" th:id="${control.name}" class="form-control rich-editor"></textarea>
+                    <textarea th:if="${control.type == 'textarea'}"
+                              th:name="${control.name}" th:id="${control.name}"
+                              class="form-control"
+                              th:text="${formData != null ? formData.get(control.name) : ''}"></textarea>
 
-                    <input th:if="${control.type == 'select-multiple'}" th:name="${control.name}" class="form-control tagify-input"
+                    <textarea th:if="${control.type == 'richtext'}"
+                              th:name="${control.name}" th:id="${control.name}"
+                              class="form-control rich-editor"
+                              th:text="${formData != null ? formData.get(control.name) : ''}"></textarea>
+
+                    <input th:if="${control.type == 'select-multiple'}"
+                           th:name="${control.name}"
+                           th:id="${control.name}"
+                           class="form-control tagify-input"
+                           th:value="${formData != null ? formData.get(control.name) : ''}"
                            th:data-options="${#strings.arrayJoin(control.options, ',')}" />
 
                     <select th:if="${control.type == 'select'}" th:name="${control.name}" class="form-control">
-                        <option th:each="opt : ${control.options}" th:value="${opt}" th:text="${opt}"></option>
+                        <option value="">Select...</option>
+                        <option th:each="opt : ${control.options}"
+                                th:value="${opt}"
+                                th:text="${opt}"
+                                th:selected="${formData != null && formData.get(control.name) == opt}"></option>
                     </select>
 
-                    <div th:if="${control.type == 'radio'}" class="radio-group-container">
+                    <div th:if="${control.type == 'radio'}" class="radio-group-container" th:id="${control.name}">
                         <div th:each="option : ${control.options}" class="custom-radio">
-                            <input type="radio" th:name="${control.name}" th:value="${option}" />
+                            <input type="radio"
+                                   th:name="${control.name}"
+                                   th:value="${option}"
+                                   th:checked="${formData != null && formData.get(control.name) == option}" />
+                            <label th:text="${option}"></label>
+                        </div>
+                    </div>
+
+                    <div th:if="${control.type == 'checkbox'}" class="radio-group-container" th:id="${control.name}">
+                        <div th:each="option : ${control.options}" class="custom-radio">
+                            <input type="checkbox"
+                                   th:name="${control.name}"
+                                   th:value="${option}"
+                                   th:checked="${formData != null && formData.get(control.name) != null && #lists.contains(#strings.arraySplit(formData.get(control.name), ','), option)}" />
                             <label th:text="${option}"></label>
                         </div>
                     </div>
@@ -75,6 +118,7 @@
                      th:text="${errors.get(control.name)}">Error</div>
                 <div class="error-message" th:id="'error-' + ${control.name}"></div>
             </div>
+            <div class="error-message" id="form-validation-message"></div>
 
             <button type="submit" class="submit-btn">Submit</button>
         </form>

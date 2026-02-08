@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Error - Something went wrong</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="form-card" style="text-align: center;">
+        <h1 style="color: #e74c3c;">Oops!</h1>
+        <p>Something went wrong on our end.</p>
+        <div th:if="${message}" style="background: #f8d7da; padding: 10px; border-radius: 5px; margin: 20px 0;">
+            <code th:text="${message}">Error details here</code>
+        </div>
+        <a href="/" class="submit-btn" style="text-decoration: none; display: inline-block;">Return to Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

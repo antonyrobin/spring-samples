@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.model.FormSubmission;
+import com.example.demo.repository.interfaces.IFormSubmissionRepository;
 import com.example.demo.service.interfaces.IFileStorageService;
 import com.example.demo.service.interfaces.IFormSubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,8 @@ public class FormSubmissionService implements IFormSubmissionService {
     @Autowired
     private IFileStorageService fileStorageService;
     // In-memory database
-    private final List<FormSubmission> repository = new ArrayList<>();
+    @Autowired
+    private IFormSubmissionRepository submissionRepository;
 
     public Map<String, String> getInputTextData(Map<String, String[]> params) {
         Map<String, String> newTextData = new HashMap<>();
@@ -45,7 +47,7 @@ public class FormSubmissionService implements IFormSubmissionService {
             }
         });
         FormSubmission submission = new FormSubmission(newTextData, savedFileData);
-        repository.add(submission);
+        submissionRepository.save(submission);
     }
 
     @Override
@@ -67,24 +69,22 @@ public class FormSubmissionService implements IFormSubmissionService {
                     existing.getFileData().put(key, storedFileName);
                 }
             });
+            submissionRepository.update(existing);
         }
     }
 
     @Override
     public List<FormSubmission> getAll() {
-        return new ArrayList<>(repository); // Return copy
+        return submissionRepository.findAll(); // Return copy
     }
 
     @Override
     public FormSubmission getById(String id) {
-        return repository.stream()
-                .filter(s -> s.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        return submissionRepository.findById(id).orElse(null);
     }
 
     @Override
     public void delete(String id) {
-        repository.removeIf(s -> s.getId().equals(id));
+        submissionRepository.deleteById(id);
     }
 }

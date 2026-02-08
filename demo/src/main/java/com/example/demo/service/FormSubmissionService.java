@@ -5,6 +5,7 @@ import com.example.demo.repository.interfaces.IFormSubmissionRepository;
 import com.example.demo.service.interfaces.IFileStorageService;
 import com.example.demo.service.interfaces.IFormSubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +18,7 @@ public class FormSubmissionService implements IFormSubmissionService {
     private IFileStorageService fileStorageService;
     // In-memory database
     @Autowired
+    @Qualifier("localStore")
     private IFormSubmissionRepository submissionRepository;
 
     public Map<String, String> getInputTextData(Map<String, String[]> params) {

@@ -2,7 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.model.FormControl;
 import com.example.demo.model.FormSubmission;
-import com.example.demo.service.*;
+import com.example.demo.service.interfaces.IFileStorageService;
+import com.example.demo.service.interfaces.IFormDefinitionService;
+import com.example.demo.service.interfaces.IFormSubmissionService;
+import com.example.demo.service.interfaces.IFormValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -14,17 +17,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Controller
 public class DynamicFormController {
 
-    @Autowired private FormDefinitionService formDefService;
-    @Autowired private FormValidationService validationService;
-    @Autowired private FormSubmissionService submissionService;
-    @Autowired private FileStorageService fileStorageService;
+    @Autowired private IFormDefinitionService formDefService;
+    @Autowired private IFormValidationService validationService;
+    @Autowired private IFormSubmissionService submissionService;
+    @Autowired private IFileStorageService fileStorageService;
 
     // 1. Dashboard (Table View)
     @GetMapping("/")
@@ -52,39 +54,15 @@ public class DynamicFormController {
         Map<String, MultipartFile> fileMap = request.getFileMap();
 
         // Server-Side Validation
-        Map<String, String> errors = validationService.validate(paramMap, fileMap, controls);
+        Map<String, String> errors = validationService.validate(paramMap, fileMap, controls, false);
         if (!errors.isEmpty()) {
-            model.addAttribute("formControls", controls);
-            model.addAttribute("errors", errors);
-            // Retain values (simple implementation)
-            Map<String, String> retained = new HashMap<>();
-            paramMap.forEach((k, v) -> retained.put(k, String.join(",", v)));
-            model.addAttribute("formData", retained);
+            model = validationService.handleValidationErrors(model, errors, paramMap, controls);
+            model.addAttribute("isEdit", false);
+            model.addAttribute("submissionId", "");
             return "dynamic-form";
         }
 
-        // Process Storage
-        Map<String, String> textData = new HashMap<>();
-        Map<String, String> savedFileData = new HashMap<>();
-
-        paramMap.forEach((k, v) -> {
-            if (v != null && v.length > 1) {
-                textData.put(k, String.join(",", v));
-            } else {
-                textData.put(k, v[0]);
-            }
-        });
-
-        fileMap.forEach((key, file) -> {
-            if (!file.isEmpty()) {
-                String storedFileName = fileStorageService.store(file);
-                savedFileData.put(key, storedFileName);
-            }
-        });
-
-        // Save Record
-        FormSubmission submission = new FormSubmission(textData, savedFileData);
-        submissionService.save(submission);
+        submissionService.save(paramMap, fileMap);
 
         redirectAttributes.addFlashAttribute("message", "Application submitted successfully!");
         return "redirect:";
@@ -118,7 +96,22 @@ public class DynamicFormController {
 
     // Update existing record
     @PostMapping("/update/{id}")
-    public String handleUpdate(@PathVariable String id, MultipartHttpServletRequest request, RedirectAttributes redirectAttributes) {
+    public String handleUpdate(@PathVariable String id, MultipartHttpServletRequest request, RedirectAttributes redirectAttributes, Model model) {
+        List<FormControl> controls = formDefService.getFormControls();
+
+        // Extract Data
+        Map<String, String[]> paramMap = request.getParameterMap();
+        Map<String, MultipartFile> fileMap = request.getFileMap();
+
+        // Server-Side Validation
+        Map<String, String> errors = validationService.validate(paramMap, fileMap, controls, true);
+        if (!errors.isEmpty()) {
+            model = validationService.handleValidationErrors(model, errors, paramMap, controls);
+            model.addAttribute("isEdit", true);
+            model.addAttribute("submissionId", id);
+            return "dynamic-form";
+        }
+
         // Logic similar to handleSubmit but replaces data in ArrayList for the given ID
         submissionService.update(id, request.getParameterMap(), request.getFileMap());
         redirectAttributes.addFlashAttribute("message", "Record updated successfully!");

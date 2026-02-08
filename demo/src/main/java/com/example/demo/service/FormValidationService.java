@@ -1,15 +1,18 @@
 package com.example.demo.service;
 
 import com.example.demo.model.FormControl;
+import com.example.demo.service.interfaces.IFormValidationService;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
-public class FormValidationService {
+public class FormValidationService implements IFormValidationService {
 
-    public Map<String, String> validate(Map<String, String[]> params, Map<String, MultipartFile> files, List<FormControl> controls) {
+    @Override
+    public Map<String, String> validate(Map<String, String[]> params, Map<String, MultipartFile> files, List<FormControl> controls, boolean isEdit) {
         Map<String, String> errors = new HashMap<>();
 
         for (FormControl control : controls) {
@@ -18,8 +21,7 @@ public class FormValidationService {
             // File Validation
             if (control.getType().equals("file") || control.getType().equals("image")) {
                 boolean hasNewFile = files.containsKey(name) && !files.get(name).isEmpty();
-                boolean isEdit = params.containsKey("isEdit") && params.get("isEdit")[0].equals("true");
-System.out.println(control.getLabel() + " - hasNewFile: " + hasNewFile + ", isEdit: " + isEdit);
+
                 if (control.isMandatory() && !hasNewFile && !isEdit) {
                     errors.put(name, control.getLabel() + " is required.");
                 } else if (files.containsKey(name) && !files.get(name).isEmpty()) {
@@ -48,5 +50,18 @@ System.out.println(control.getLabel() + " - hasNewFile: " + hasNewFile + ", isEd
             }
         }
         return errors;
+    }
+
+    @Override
+    public Model handleValidationErrors(Model model, Map<String, String> errors, Map<String, String[]> params, List<FormControl> controls) {
+        model.addAttribute("errors", errors);
+        model.addAttribute("formControls", controls);
+
+        // Retain values (simple implementation)
+        Map<String, String> retained = new HashMap<>();
+        params.forEach((k, v) -> retained.put(k, String.join(",", v)));
+        model.addAttribute("formData", retained);
+
+        return model;
     }
 }

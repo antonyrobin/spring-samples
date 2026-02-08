@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.service.interfaces.IFileStorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ import java.nio.file.*;
 import java.util.Objects;
 
 @Service
-public class FileStorageService {
+public class FileStorageService implements IFileStorageService {
     private final Path rootLocation = Paths.get("uploads");
 
     public FileStorageService() {
@@ -22,6 +23,7 @@ public class FileStorageService {
         }
     }
 
+    @Override
     public String store(MultipartFile file) {
         try {
             if (file.isEmpty()) throw new RuntimeException("Failed to store empty file.");
@@ -38,6 +40,7 @@ public class FileStorageService {
         }
     }
 
+    @Override
     public Resource loadAsResource(String filename) {
         try {
             Path file = rootLocation.resolve(filename);

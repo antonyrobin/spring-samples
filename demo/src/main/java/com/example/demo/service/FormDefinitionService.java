@@ -1,12 +1,15 @@
 package com.example.demo.service;
 
 import com.example.demo.model.FormControl;
+import com.example.demo.service.interfaces.IFormDefinitionService;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class FormDefinitionService {
+public class FormDefinitionService implements IFormDefinitionService {
+
+    @Override
     public List<FormControl> getFormControls() {
         List<FormControl> controls = new ArrayList<>();
         // 1. Text

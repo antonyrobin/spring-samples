@@ -128,5 +128,8 @@ The JAR file will be created in the target/ directory. Run the JAR with:
     java -jar target/demo-0.0.1-SNAPSHOT.jar
 This will start the application just like before, accessible on http://localhost:8080.
 
+## CI / CD using Azure App Service
+
+
 ## Conclusion
 You have now successfully set up Spring Boot on Windows and created a simple web application. You can explore more by adding additional Spring Boot dependencies for databases, security, etc., depending on your application's requirements.

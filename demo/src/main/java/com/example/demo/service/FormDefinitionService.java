@@ -33,6 +33,8 @@ public class FormDefinitionService implements IFormDefinitionService {
 
         controls.add(new FormControl("select", "degree", "Degree", false, "", "", "Bachelor's", "Master's", "PhD"));
 
+controls.add(new FormControl("text", "otherNotes", "Notes", true, "^[a-zA-Z\\s]+$", "Only letters allowed"));
+
         controls.add(new FormControl("textarea", "summary", "Summary", false, "", ""));
 
         return controls;

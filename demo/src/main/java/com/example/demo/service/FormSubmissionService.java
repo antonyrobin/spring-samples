@@ -21,8 +21,8 @@ public class FormSubmissionService implements IFormSubmissionService {
     @Qualifier("localStore")
     private IFormSubmissionRepository submissionRepository;
 
-    public Map<String, String> getInputTextData(Map<String, String[]> params) {
-        Map<String, String> newTextData = new HashMap<>();
+    public Map<String, Object> getInputTextData(Map<String, String[]> params) {
+        Map<String, Object> newTextData = new HashMap<>();
         params.forEach((k, v) -> {
             if (!k.startsWith("_")) { // Skip internal Spring/CSRF fields
                 if (v != null && v.length > 1) {
@@ -37,7 +37,7 @@ public class FormSubmissionService implements IFormSubmissionService {
 
     @Override
     public void save(Map<String, String[]> params, Map<String, MultipartFile> files) {
-        Map<String, String> newTextData = getInputTextData(params);
+        Map<String, Object> newTextData = getInputTextData(params);
 
         Map<String, String> savedFileData = new HashMap<>();
         // Update File Data
@@ -57,7 +57,7 @@ public class FormSubmissionService implements IFormSubmissionService {
         FormSubmission existing = getById(id);
         if (existing != null) {
             // Update Text Data
-            Map<String, String> newTextData = getInputTextData(params);
+            Map<String, Object> newTextData = getInputTextData(params);
 
             // Clear old text data and replace with new
             existing.getTextData().clear();

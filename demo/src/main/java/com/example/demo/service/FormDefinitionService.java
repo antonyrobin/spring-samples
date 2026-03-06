@@ -34,7 +34,7 @@ public class FormDefinitionService implements IFormDefinitionService {
 
         controls.add(new FormControl("textarea", "summary", "Summary", false, "", ""));
 
-controls.add(new FormControl("text", "comments", "Comments", false, "", ""));
+controls.add(new FormControl("textarea", "comments", "Comments", false, "", ""));
 
         return controls;
     }

@@ -19,6 +19,8 @@ public class FormDefinitionService implements IFormDefinitionService {
         controls.add(new FormControl("tel", "mobile", "Mobile", false, "", ""));
         // 3. Profile Picture (New Control Type)
         controls.add(new FormControl("image", "profilePic", "Profile Picture (JPG/PNG)", true, "", ""));
+
+controls.add(new FormControl("textarea", "comments", "Comments", false, "", ""));
         // 4. Skills (Tagify)
         controls.add(new FormControl("select-multiple", "skills", "Skills", true, "", "", "Java", "Python", "Spring"));
         // 5. Bio (Rich Text)
@@ -33,8 +35,6 @@ public class FormDefinitionService implements IFormDefinitionService {
         controls.add(new FormControl("select", "degree", "Degree", false, "", "", "Bachelor's", "Master's", "PhD"));
 
         controls.add(new FormControl("textarea", "summary", "Summary", false, "", ""));
-
-controls.add(new FormControl("textarea", "comments", "Comments", false, "", ""));
 
         return controls;
     }
